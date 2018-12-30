@@ -1,0 +1,386 @@
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\kr2152\Desktop\results.log
+  log type:  text
+ opened on:   4 May 2018, 13:46:02
+
+. 
+. /***** Author: Kenneth Rios
+> ***** Last Updated: 3/21/2018
+> *****
+> ***** Purpose: This script merges all state-level data, calculates summary statistics
+> ***** and runs a logistic regression of state-level electoral outcome on %male,
+> ***** %white, %black, %asian, %hispanic, Gini and Atkinson inequality indices, 
+> ***** and unemployment rates for years 2000, 2004, 2008, 2012, and 2016. We run
+> ***** both fixed and random effects specifications and decide between the two
+> ***** using a Hausman test. We then estimate marginal effects using -margins-.
+> 
+> /* Merge all state-level datasets for analysis */
+> use "\\Client\C$\Users\kenri\OneDrive\Spring 2018\Applied Statistics & Econometrics II\Research Project\Output\electoral_outcomes.dta"
+> 
+> merge 1:1 State Year using "\\Client\C$\Users\kenri\OneDrive\Spring 2018\Applied Statistics & Econometrics II\Research Project\Output\demographics.dta", nogen
+> merge 1:1 State Year using "\\Client\C$\Users\kenri\OneDrive\Spring 2018\Applied Statistics & Econometrics II\Research Project\Output\income_pc.dta", nogen
+> merge 1:1 State Year using "\\Client\C$\Users\kenri\OneDrive\Spring 2018\Applied Statistics & Econometrics II\Research Project\Output\inequality_indices.dta", nogen
+> merge 1:1 State Year using "\\Client\C$\Users\kenri\OneDrive\Spring 2018\Applied Statistics & Econometrics II\Research Project\Output\unemp_rates.dta", nogen
+> 
+> sort Year State
+> 
+> /* Convert data to balanced panel */
+> rename State state
+> encode state, gen(State)
+> drop state
+> order State */
+. 
+. use "C:\Users\kr2152\Desktop\FINAL_DATA.dta"
+
+. xtset State Year, delta(4)
+       panel variable:  State (strongly balanced)
+        time variable:  Year, 2000 to 2016
+                delta:  4 units
+
+. 
+. /* Generate summary statistics */
+. xtsum Democrat White_pct Black_pct Asian_pct Female_pct Hispanic_pct Gini Unemp_rate
+
+Variable         |      Mean   Std. Dev.       Min        Max |    Observations
+-----------------+--------------------------------------------+----------------
+Democrat overall |  .4666667   .4998687          0          1 |     N =     255
+         between |             .4466169          0          1 |     n =      51
+         within  |             .2313943  -.3333333   1.266667 |     T =       5
+                 |                                            |
+White_~t overall |   79.3058   13.85502       24.9    97.2592 |     N =     255
+         between |             13.64349   25.53535   95.82573 |     n =      51
+         within  |             2.957768   68.84441   87.16992 |     T =       5
+                 |                                            |
+Black_~t overall |  11.25701   11.23226   .3094804   61.04649 |     N =     255
+         between |             11.29042   .3926791   53.90232 |     n =      51
+         within  |              .835302    4.45469   18.40118 |     T =       5
+                 |                                            |
+Asian_~t overall |  3.603828   5.646137   .5385659   42.27037 |     N =     255
+         between |             5.662749   .6347459   39.76257 |     n =      51
+         within  |             .5631389   1.610927   6.111631 |     T =       5
+                 |                                            |
+Female~t overall |  50.72327   .8201475       47.4   52.90536 |     N =     255
+         between |             .8092565    47.9415    52.7556 |     n =      51
+         within  |             .1675091   49.84875   51.43341 |     T =       5
+                 |                                            |
+Hispan~t overall |  9.914342   9.661951   .6832793       48.5 |     N =     255
+         between |             9.615922   1.105597   45.44183 |     n =      51
+         within  |             1.530849   4.944815   13.65453 |     T =       5
+                 |                                            |
+Gini     overall |  .6018358   .0362418   .5263134   .7114252 |     N =     255
+         between |             .0279056   .5564341   .6738318 |     n =      51
+         within  |             .0233881   .5441005   .6833432 |     T =       5
+                 |                                            |
+Unemp_~e overall |   5.38549    1.68686        2.1       10.7 |     N =     255
+         between |              1.00064       3.16       7.16 |     n =      51
+         within  |             1.363812    2.26549    9.56549 |     T =       5
+
+. corr Democrat White_pct Black_pct Asian_pct Female_pct Hispanic_pct Gini Unemp_rate
+(obs=255)
+
+             | Democrat White_~t Black_~t Asian_~t Female~t Hispan~t     Gini Unemp_~e
+-------------+------------------------------------------------------------------------
+    Democrat |   1.0000
+   White_pct |  -0.1453   1.0000
+   Black_pct |  -0.0243  -0.6501   1.0000
+   Asian_pct |   0.3353  -0.6304  -0.0903   1.0000
+  Female_pct |   0.2636  -0.2439   0.6590  -0.1651   1.0000
+Hispanic_pct |   0.1775  -0.1306  -0.1126   0.1937  -0.1496   1.0000
+        Gini |  -0.0059  -0.1922   0.1689   0.0100   0.0296   0.4118   1.0000
+  Unemp_rate |   0.1472  -0.2621   0.2782   0.0043   0.1579   0.1951   0.3341   1.0000
+
+
+. 
+. /* Run panel-data logistic regressions and estimate marginal effects (-xtlogit-) */
+. *** Fixed Effects Specification ***
+. xtlogit Democrat White_pct Black_pct Asian_pct Female_pct Hispanic_pct Gini Unemp_rate, fe
+note: multiple positive outcomes within groups encountered.
+note: 37 groups (185 obs) dropped because of all positive or
+      all negative outcomes.
+
+Iteration 0:   log likelihood = -19.318944  
+Iteration 1:   log likelihood = -18.410308  
+Iteration 2:   log likelihood = -18.285675  
+Iteration 3:   log likelihood = -18.285341  
+Iteration 4:   log likelihood = -18.285341  
+
+Conditional fixed-effects logistic regression   Number of obs     =         70
+Group variable: State                           Number of groups  =         14
+
+                                                Obs per group:
+                                                              min =          5
+                                                              avg =        5.0
+                                                              max =          5
+
+                                                LR chi2(7)        =      16.81
+Log likelihood  = -18.285341                    Prob > chi2       =     0.0187
+
+------------------------------------------------------------------------------
+    Democrat |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+   White_pct |   .0754376   .2747057     0.27   0.784    -.4629757    .6138509
+   Black_pct |   .6983046   1.332429     0.52   0.600    -1.913207    3.309817
+   Asian_pct |   .1891794   1.182902     0.16   0.873    -2.129266    2.507624
+  Female_pct |   3.590502   3.187953     1.13   0.260     -2.65777    9.838775
+Hispanic_pct |    .264595   .6016921     0.44   0.660    -.9146999     1.44389
+        Gini |   7.960952   20.24619     0.39   0.694    -31.72085    47.64275
+  Unemp_rate |   .6091014   .2662594     2.29   0.022     .0872426     1.13096
+------------------------------------------------------------------------------
+
+. est sto fixed_effs
+
+. 
+. margins, dydx(*) predict(xb)
+
+Average marginal effects                        Number of obs     =         70
+Model VCE    : OIM
+
+Expression   : Linear prediction, predict(xb)
+dy/dx w.r.t. : White_pct Black_pct Asian_pct Female_pct Hispanic_pct Gini Unemp_rate
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+   White_pct |   .0754376   .2747057     0.27   0.784    -.4629757    .6138509
+   Black_pct |   .6983046   1.332429     0.52   0.600    -1.913207    3.309817
+   Asian_pct |   .1891794   1.182902     0.16   0.873    -2.129266    2.507624
+  Female_pct |   3.590502   3.187953     1.13   0.260     -2.65777    9.838775
+Hispanic_pct |    .264595   .6016921     0.44   0.660    -.9146999     1.44389
+        Gini |   7.960952   20.24619     0.39   0.694    -31.72085    47.64275
+  Unemp_rate |   .6091014   .2662594     2.29   0.022     .0872426     1.13096
+------------------------------------------------------------------------------
+
+. 
+. *** Random Effects Specification ***
+. xtlogit Democrat White_pct Black_pct Asian_pct Female_pct Hispanic_pct Gini Unemp_rate, re 
+
+Fitting comparison model:
+
+Iteration 0:   log likelihood = -176.18544  
+Iteration 1:   log likelihood = -112.51348  
+Iteration 2:   log likelihood = -87.659878  
+Iteration 3:   log likelihood = -82.230257  
+Iteration 4:   log likelihood = -81.752951  
+Iteration 5:   log likelihood = -81.751438  
+Iteration 6:   log likelihood = -81.751437  
+
+Fitting full model:
+
+tau =  0.0     log likelihood = -81.751437
+tau =  0.1     log likelihood = -79.763426
+tau =  0.2     log likelihood = -77.851958
+tau =  0.3     log likelihood = -76.022244
+tau =  0.4     log likelihood = -74.289804
+tau =  0.5     log likelihood = -72.686974
+tau =  0.6     log likelihood = -71.278225
+tau =  0.7     log likelihood = -70.200108
+tau =  0.8     log likelihood = -69.781653
+
+Iteration 0:   log likelihood = -70.201991  
+Iteration 1:   log likelihood = -67.337545  
+Iteration 2:   log likelihood = -67.051535  
+Iteration 3:   log likelihood = -67.048582  
+Iteration 4:   log likelihood =  -67.04858  
+Iteration 5:   log likelihood = -67.048559  
+Iteration 6:   log likelihood = -67.048559  
+
+Random-effects logistic regression              Number of obs     =        255
+Group variable: State                           Number of groups  =         51
+
+Random effects u_i ~ Gaussian                   Obs per group:
+                                                              min =          5
+                                                              avg =        5.0
+                                                              max =          5
+
+Integration method: mvaghermite                 Integration pts.  =         12
+
+                                                Wald chi2(7)      =      25.00
+Log likelihood  = -67.048559                    Prob > chi2       =     0.0008
+
+------------------------------------------------------------------------------
+    Democrat |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+   White_pct |   .0833774   .1249743     0.67   0.505    -.1615678    .3283226
+   Black_pct |   -.248775   .1496029    -1.66   0.096    -.5419913    .0444414
+   Asian_pct |   2.419037   .5570491     4.34   0.000     1.327241    3.510834
+  Female_pct |   6.103924   1.487712     4.10   0.000     3.188062    9.019785
+Hispanic_pct |   .0148601   .0657368     0.23   0.821    -.1139816    .1437018
+        Gini |  -5.690989   13.43315    -0.42   0.672    -32.01947    20.63749
+  Unemp_rate |   .5930859   .2320248     2.56   0.011     .1383256    1.047846
+       _cons |  -320.4161   77.20324    -4.15   0.000    -471.7317   -169.1006
+-------------+----------------------------------------------------------------
+    /lnsig2u |   1.871839    .538659                      .8160872    2.927592
+-------------+----------------------------------------------------------------
+     sigma_u |   2.549557   .6866709                      1.503873    4.322335
+         rho |   .6639601    .120184                      .4073913     .850273
+------------------------------------------------------------------------------
+LR test of rho=0: chibar2(01) = 29.41                  Prob >= chibar2 = 0.000
+
+. est sto random_effs
+
+. 
+. margins, dydx(*)
+
+Average marginal effects                        Number of obs     =        255
+Model VCE    : OIM
+
+Expression   : Pr(Democrat=1), predict(pr)
+dy/dx w.r.t. : White_pct Black_pct Asian_pct Female_pct Hispanic_pct Gini Unemp_rate
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+   White_pct |   .0053525   .0079657     0.67   0.502      -.01026    .0209651
+   Black_pct |  -.0159705   .0092432    -1.73   0.084    -.0340869     .002146
+   Asian_pct |   .1552935   .0201221     7.72   0.000      .115855     .194732
+  Female_pct |     .39185   .0665359     5.89   0.000      .261442    .5222579
+Hispanic_pct |    .000954   .0042269     0.23   0.821    -.0073307    .0092386
+        Gini |   -.365341   .8653028    -0.42   0.673    -2.061303    1.330621
+  Unemp_rate |    .038074   .0133044     2.86   0.004     .0119978    .0641502
+------------------------------------------------------------------------------
+
+. 
+. /* Perform Hausman test */
+. hausman fixed_effs random_effs
+
+                 ---- Coefficients ----
+             |      (b)          (B)            (b-B)     sqrt(diag(V_b-V_B))
+             |   fixed_effs  random_effs     Difference          S.E.
+-------------+----------------------------------------------------------------
+   White_pct |    .0754376     .0833774       -.0079398        .2446316
+   Black_pct |    .6983046     -.248775        .9470796        1.324003
+   Asian_pct |    .1891794     2.419037       -2.229858        1.043529
+  Female_pct |    3.590502     6.103924       -2.513421        2.819531
+Hispanic_pct |     .264595     .0148601        .2497349        .5980903
+        Gini |    7.960952    -5.690989        13.65194        15.14789
+  Unemp_rate |    .6091014     .5930859        .0160155        .1306083
+------------------------------------------------------------------------------
+                         b = consistent under Ho and Ha; obtained from xtlogit
+          B = inconsistent under Ha, efficient under Ho; obtained from xtlogit
+
+    Test:  Ho:  difference in coefficients not systematic
+
+                  chi2(7) = (b-B)'[(V_b-V_B)^(-1)](b-B)
+                          =       13.69
+                Prob>chi2 =      0.0570
+
+. * We fail to reject the null hypothesis at the 5% significance level. 
+. * Therefore we use the random effects model!
+. 
+. ********************************************************************************
+. 
+. /* Perform test for autocorrelation in panel data */
+. xtserial Democrat White_pct Black_pct Asian_pct Female_pct Hispanic_pct Gini Unemp_rate
+
+Wooldridge test for autocorrelation in panel data
+H0: no first-order autocorrelation
+    F(  1,      50) =      5.420
+           Prob > F =      0.0240
+
+. * We reject the null hypothesis of no autocorrelation at the 5% significance level. 
+. * Therefore we use the autocorrelation-consistent variance-covariance estimator 
+. * by using the vce(cluster panelvar) command:
+. 
+. *** Random Effects Specification ***
+. xtlogit Democrat White_pct Black_pct Asian_pct Female_pct Hispanic_pct Gini Unemp_rate, re vce(cluster State)
+
+Fitting comparison model:
+
+Iteration 0:   log pseudolikelihood = -176.18544  
+Iteration 1:   log pseudolikelihood = -112.51348  
+Iteration 2:   log pseudolikelihood = -87.659878  
+Iteration 3:   log pseudolikelihood = -82.230257  
+Iteration 4:   log pseudolikelihood = -81.752951  
+Iteration 5:   log pseudolikelihood = -81.751438  
+Iteration 6:   log pseudolikelihood = -81.751437  
+
+Fitting full model:
+
+tau =  0.0     log pseudolikelihood = -81.751437
+tau =  0.1     log pseudolikelihood = -79.763426
+tau =  0.2     log pseudolikelihood = -77.851958
+tau =  0.3     log pseudolikelihood = -76.022244
+tau =  0.4     log pseudolikelihood = -74.289804
+tau =  0.5     log pseudolikelihood = -72.686974
+tau =  0.6     log pseudolikelihood = -71.278225
+tau =  0.7     log pseudolikelihood = -70.200108
+tau =  0.8     log pseudolikelihood = -69.781653
+
+Iteration 0:   log pseudolikelihood = -70.201991  
+Iteration 1:   log pseudolikelihood = -67.337545  
+Iteration 2:   log pseudolikelihood = -67.051535  
+Iteration 3:   log pseudolikelihood = -67.048582  
+Iteration 4:   log pseudolikelihood =  -67.04858  
+Iteration 5:   log pseudolikelihood = -67.048559  
+Iteration 6:   log pseudolikelihood = -67.048559  
+
+Calculating robust standard errors:
+
+Random-effects logistic regression              Number of obs     =        255
+Group variable: State                           Number of groups  =         51
+
+Random effects u_i ~ Gaussian                   Obs per group:
+                                                              min =          5
+                                                              avg =        5.0
+                                                              max =          5
+
+Integration method: mvaghermite                 Integration pts.  =         12
+
+                                                Wald chi2(7)      =      47.51
+Log pseudolikelihood  = -67.048559              Prob > chi2       =     0.0000
+
+                                 (Std. Err. adjusted for 51 clusters in State)
+------------------------------------------------------------------------------
+             |               Robust
+    Democrat |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+   White_pct |   .0833774   .1447754     0.58   0.565    -.2003771     .367132
+   Black_pct |   -.248775   .1666803    -1.49   0.136    -.5754624    .0779125
+   Asian_pct |   2.419037   .4915429     4.92   0.000     1.455631    3.382444
+  Female_pct |   6.103924   1.233161     4.95   0.000     3.686973    8.520875
+Hispanic_pct |   .0148601   .0621629     0.24   0.811     -.106977    .1366972
+        Gini |  -5.690989   13.60481    -0.42   0.676    -32.35592    20.97395
+  Unemp_rate |   .5930859    .177534     3.34   0.001     .2451256    .9410462
+       _cons |  -320.4161   63.18679    -5.07   0.000      -444.26   -196.5723
+-------------+----------------------------------------------------------------
+    /lnsig2u |   1.871839    .468198                      .9541881    2.789491
+-------------+----------------------------------------------------------------
+     sigma_u |   2.549557   .5968489                      1.611385    4.033947
+         rho |   .6639601    .104463                      .4411098    .8318287
+------------------------------------------------------------------------------
+
+. 
+. margins, dydx(*)
+
+Average marginal effects                        Number of obs     =        255
+Model VCE    : Robust
+
+Expression   : Pr(Democrat=1), predict(pr)
+dy/dx w.r.t. : White_pct Black_pct Asian_pct Female_pct Hispanic_pct Gini Unemp_rate
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+   White_pct |   .0053525   .0092592     0.58   0.563    -.0127951    .0235002
+   Black_pct |  -.0159705   .0106527    -1.50   0.134    -.0368494    .0049085
+   Asian_pct |   .1552935   .0183919     8.44   0.000     .1192461    .1913409
+  Female_pct |     .39185   .0560654     6.99   0.000     .2819639     .501736
+Hispanic_pct |    .000954   .0040513     0.24   0.814    -.0069864    .0088943
+        Gini |   -.365341   .8905513    -0.41   0.682    -2.110789    1.380107
+  Unemp_rate |    .038074   .0110881     3.43   0.001     .0163418    .0598062
+------------------------------------------------------------------------------
+
+. 
+. /* No need to perform a test for heteroscedasticity since logistic regression  
+> operates under the assumption of non-constant variance (mention in paper). */
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\kr2152\Desktop\results.log
+  log type:  text
+ closed on:   4 May 2018, 13:46:10
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

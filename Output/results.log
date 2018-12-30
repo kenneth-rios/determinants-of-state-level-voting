@@ -1,0 +1,83 @@
+--------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  \\Client\C$\Users\kenri\OneDrive\Spring 2018\Applied Statistics & Econometrics II\Research Project\Output\results.l
+> og
+  log type:  text
+ opened on:   4 May 2018, 13:20:47
+
+. 
+. ***** Author: Kenneth Rios
+. ***** Last Updated: 3/21/2018
+. *****
+. ***** Purpose: This script merges all state-level data, calculates summary statistics
+. ***** and runs a logistic regression of state-level electoral outcome on %male,
+. ***** %white, %black, %asian, %hispanic, Gini and Atkinson inequality indices, 
+. ***** and unemployment rates for years 2000, 2004, 2008, 2012, and 2016. We run
+. ***** both fixed and random effects specifications and decide between the two
+. ***** using a Hausman test. We then estimate marginal effects using -margins-.
+. 
+. /* Merge all state-level datasets for analysis */
+. use "\\Client\C$\Users\kenri\OneDrive\Spring 2018\Applied Statistics & Econometrics II\Research Project\Output\electoral_outco
+> mes.dta"
+
+. 
+. merge 1:1 State Year using "\\Client\C$\Users\kenri\OneDrive\Spring 2018\Applied Statistics & Econometrics II\Research Project
+> \Output\demographics.dta", nogen
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                               255  
+    -----------------------------------------
+
+. merge 1:1 State Year using "\\Client\C$\Users\kenri\OneDrive\Spring 2018\Applied Statistics & Econometrics II\Research Project
+> \Output\income_pc.dta", nogen
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                               255  
+    -----------------------------------------
+
+. merge 1:1 State Year using "\\Client\C$\Users\kenri\OneDrive\Spring 2018\Applied Statistics & Econometrics II\Research Project
+> \Output\inequality_indices.dta", nogen
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                               255  
+    -----------------------------------------
+
+. merge 1:1 State Year using "\\Client\C$\Users\kenri\OneDrive\Spring 2018\Applied Statistics & Econometrics II\Research Project
+> \Output\unemp_rates.dta", nogen
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                               255  
+    -----------------------------------------
+
+. 
+. sort Year State
+
+. 
+. /* Convert data to balanced panel */
+. rename State state
+
+. encode state, gen(State)
+
+. drop state
+
+. order State 
+
+. 
+end of do-file
+
+. save "\\Client\C$\Users\kenri\OneDrive\Spring 2018\Applied Statistics & Econometrics II\Research Project\Output\FINAL_DATA.dta
+> "
+file \\Client\C$\Users\kenri\OneDrive\Spring 2018\Applied Statistics & Econometrics II\Research Project\Output\FINAL_DATA.dta sa
+> ved
+
+. clear all
+
+. exit
