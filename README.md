@@ -1,2 +1,2 @@
 # determinants_of_state_level_voting
-Random Effects Panel Logit Regression
+I estimate the marginal effects of minority populations, income inequality, and unemployment at the state-level on the probability of a given state voting for the Democratic Presidential candidate using a random-effects logistic panel regression. I utilize a balanced panel consisting of state-level voting outcomes for five Presidential elections from 2000 through 2016. I find a statistically significant, positive relationship between the probability of a given state voting for the Democratic candidate and the proportion of the Asian population in the state, the proportion of the female population the state, and the state unemployment rate.
