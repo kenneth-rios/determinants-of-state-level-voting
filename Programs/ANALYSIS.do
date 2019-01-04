@@ -8,10 +8,10 @@ log using "\\Client\C$\Users\kenri\OneDrive\Spring 2018\Applied Statistics & Eco
 *****
 ***** Purpose: This script merges all state-level data, calculates summary statistics
 ***** and runs a logistic regression of state-level electoral outcome on %male,
-***** %white, %black, %asian, %hispanic, Gini and Atkinson inequality indices, 
-***** and unemployment rates for years 2000, 2004, 2008, 2012, and 2016. We run
-***** both fixed and random effects specifications and decide between the two
-***** using a Hausman test. We then estimate marginal effects using -margins-.
+***** %white, %black, %asian, %hispanic, the Gini inequality index, and unmployment
+***** rates for years 2000, 2004, 2008, 2012, and 2016. We run both fixed and random effects 
+***** specifications and decide between the two using a Hausman test. We then estimate 
+***** marginal effects using -margins-.
 
 /* Merge all state-level datasets for analysis */
 use "\\Client\C$\Users\kenri\OneDrive\Spring 2018\Applied Statistics & Econometrics II\Research Project\Output\electoral_outcomes.dta"
